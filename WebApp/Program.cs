@@ -21,6 +21,13 @@ namespace WebApp
 
             builder.Services.AddControllersWithViews();
 
+            builder.Services.AddAuthentication()
+                .AddMicrosoftAccount(options =>
+                {
+                    options.ClientId = builder.Configuration["Authentication:Microsoft:ClientId"]!;
+                    options.ClientSecret = builder.Configuration["Authentication:Microsoft:ClientSecret"]!;
+                });
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -40,6 +47,7 @@ namespace WebApp
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapControllerRoute(

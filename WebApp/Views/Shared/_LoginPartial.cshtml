@@ -22,5 +22,9 @@ else
     <li class="nav-item">
         <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Login">Login</a>
     </li>
+    <li>
+       <a asp-area="Identity" asp-page="/Account/ExternalLogin" asp-route-provider="Microsoft"
+               class="btn btn-primary">Login with Microsoft</a>
+    </li>
 }
 </ul>
