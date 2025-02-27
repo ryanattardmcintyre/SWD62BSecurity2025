@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WebApp.Data;
+using WebApp.DataAccess;
 
 namespace WebApp
 {
@@ -27,6 +28,25 @@ namespace WebApp
                     options.ClientId = builder.Configuration["Authentication:Microsoft:ClientId"]!;
                     options.ClientSecret = builder.Configuration["Authentication:Microsoft:ClientSecret"]!;
                 });
+
+
+            builder.Services.Configure<IdentityOptions>(options =>
+            {
+                // Lockout settings
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5); // User locked out for 15 mins
+                options.Lockout.MaxFailedAccessAttempts = 3; // Lock after 5 failed attempts
+                options.Lockout.AllowedForNewUsers = true; // Apply lockout for new users
+
+                options.Password.RequireDigit = true; // Require at least one digit
+                options.Password.RequiredLength = 6; // Minimum length of 8 characters
+                options.Password.RequireNonAlphanumeric = true; // Require at least one special character
+                options.Password.RequireUppercase = true; // Require at least one uppercase letter
+                options.Password.RequireLowercase = true; // Require at least one lowercase letter
+            });
+
+
+            builder.Services.AddScoped<ArtifactRepository>();
+            builder.Services.AddScoped<ArticleRepository>();
 
             var app = builder.Build();
 
