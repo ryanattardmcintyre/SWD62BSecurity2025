@@ -23,7 +23,6 @@
 
   <ItemGroup>
     <Folder Include="Data\UserFiles\" />
-    <Folder Include="Models\ViewModels\" />
     <Folder Include="Utilities\" />
   </ItemGroup>
 

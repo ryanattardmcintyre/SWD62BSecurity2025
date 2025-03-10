@@ -1,0 +1,47 @@
+﻿@model WebApp.Models.ViewModels.CreatePermissionViewModel
+
+@{
+    ViewData["Title"] = "Assign Permissions";
+}
+
+<h2>Assign Permissions</h2>
+
+<form asp-action="AssignPermission" method="post">
+    <div class="row">
+        <!-- Emails List -->
+        <div class="col-md-6">
+            <h4>Select Emails</h4>
+            <select id="emailList" name="selectedEmails" class="form-control" multiple>
+                @foreach (var email in Model.Emails)
+                {
+                    <option value="@email">@email</option>
+                }
+            </select>
+        </div>
+
+        <!-- Articles List -->
+        <div class="col-md-6">
+            <h4>Select Articles</h4>
+            <select id="articleList" name="selectedArticles" class="form-control" multiple>
+                @foreach (var article in Model.Articles)
+                {
+                    <option value="@article.Id">@article.Title</option>
+                }
+            </select>
+        </div>
+    </div>
+
+    <br />
+
+    <button type="submit" class="btn btn-primary">Assign Permissions</button>
+</form>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const emailList = document.getElementById("emailList");
+        const articleList = document.getElementById("articleList");
+
+        emailList.size = 5;
+        articleList.size = 5;
+    });
+</script>

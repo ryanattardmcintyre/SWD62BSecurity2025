@@ -17,8 +17,13 @@ namespace WebApp
                 options.UseSqlServer(connectionString));
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
+            //builder.Services.AddDefaultIdentity<IdentityUser >(options => options.SignIn.RequireConfirmedAccount = true)
+            //    .AddEntityFrameworkStores<ApplicationDbContext>();
+
             builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-                .AddEntityFrameworkStores<ApplicationDbContext>();
+    .AddRoles<IdentityRole>() // Enables role management
+    .AddEntityFrameworkStores<ApplicationDbContext>();
+
 
             builder.Services.AddControllersWithViews();
 

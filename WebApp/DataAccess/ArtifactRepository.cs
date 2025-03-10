@@ -3,12 +3,12 @@ using WebApp.Models;
 
 namespace WebApp.DataAccess
 {
-    public class ArtifactRepository
+    public class ArtifactRepository: BaseRepository
     {
-        ApplicationDbContext _context;
-        public ArtifactRepository(ApplicationDbContext context)
+       
+        public ArtifactRepository(ApplicationDbContext context) : base(context)
         {
-            _context = context;
+          
         }
 
         public void AddArtifact(Artifact artifact)
