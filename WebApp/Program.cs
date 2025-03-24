@@ -21,8 +21,8 @@ namespace WebApp
             //    .AddEntityFrameworkStores<ApplicationDbContext>();
 
             builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-    .AddRoles<IdentityRole>() // Enables role management
-    .AddEntityFrameworkStores<ApplicationDbContext>();
+            .AddRoles<IdentityRole>() // Enables role management
+            .AddEntityFrameworkStores<ApplicationDbContext>();
 
 
             builder.Services.AddControllersWithViews();
@@ -62,7 +62,15 @@ namespace WebApp
             }
             else
             {
-                app.UseExceptionHandler("/Home/Error");
+                //fallback plan:
+                app.UseExceptionHandler("/Home/Error"); //<<<< make sure that Error (cshtml) but doesn't contain server-side code
+                //with error pages be careful and its recommended that they are static pages not using some
+                //layout page (which might contain dynamic code)
+                //reason is: if an error occurred, so user is beign redirected to the error page but first layout is executed 
+                //           to be rendered and there is another unforseen exception while layout is loading, what's going to
+                //            happen then?? another uncaught failure? - end result will be disclosure of layout C# code
+
+
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }

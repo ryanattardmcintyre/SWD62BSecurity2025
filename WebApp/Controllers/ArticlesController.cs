@@ -37,6 +37,8 @@ namespace WebApp.Controllers
 
         [HttpPost] //this is going to handle the post request made by the user injecting
                    //possibly malicious files
+        [ValidateAntiForgeryToken] //initiates the generation of a token on the server side which has to match
+                                    // a token which is placed on the client side (inside the http form)
         public ActionResult Create(Article article, List<IFormFile> files)
         {
 

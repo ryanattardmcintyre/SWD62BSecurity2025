@@ -7,7 +7,7 @@ using WebApp.Models.ViewModels;
 
 namespace WebApp.Controllers
 {
-    [Authorize(Roles ="Admin")]
+    [Authorize(Roles ="Admin")] //actionfilter built-in
     public class AdminController : Controller
     {
         ArticleRepository _articleRepository;
