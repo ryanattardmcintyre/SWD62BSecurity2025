@@ -19,5 +19,7 @@ namespace WebApp.Models
         public DateTime UpdatedAt { get; set; }
 
         public bool PublicAccess { get; set; }
+
+        public string Digest { get; set; }
     }
 }

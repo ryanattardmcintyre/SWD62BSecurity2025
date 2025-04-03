@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using WebApp.ActionFilters;
 using WebApp.DataAccess;
 using WebApp.Models;
+using WebApp.Utilities;
 
 namespace WebApp.Controllers
 {
@@ -26,7 +27,8 @@ namespace WebApp.Controllers
 
         public IActionResult Index()
         {
-            return View();
+            var myArticles = _articleRepository.GetArticles();
+            return View(myArticles);
         }
 
 
@@ -39,7 +41,7 @@ namespace WebApp.Controllers
                    //possibly malicious files
         [ValidateAntiForgeryToken] //initiates the generation of a token on the server side which has to match
                                     // a token which is placed on the client side (inside the http form)
-        public ActionResult Create(Article article, List<IFormFile> files)
+        public ActionResult Create(Article article, List<IFormFile> files, [FromServices]EncryptionUtility enc)
         {
 
             IDbContextTransaction transaction = null; //this will be used to keep track of the db changes until i commit/abort
@@ -103,6 +105,10 @@ namespace WebApp.Controllers
                 article.UpdatedAt = DateTime.Now;
                 article.Author = User.Identity.Name; //email!! of the currently logged in user
                 article.PublicAccess = false;
+                article.Digest = enc.Hash(article.Text);
+
+
+
                 _articleRepository.AddArticle(article); //<<<<<<<<<<<<<<<<<<<<<<   saves into db
 
                
@@ -158,9 +164,23 @@ namespace WebApp.Controllers
 
         //This will open the Article to be viewed by the user
         [ArticleActionFilter]
-        public IActionResult Details(Guid id)
+        public IActionResult Details(string id, [FromServices] EncryptionUtility enc)
         {
-            var article = _articleRepository.GetArticles().SingleOrDefault(x => x.Id == id);
+            //Symmetrically decrypt the id and obtain the original value << here is where you get the
+            //100% confirmation that the Encryption worked
+
+            //note: keys have to be read from mySymmetricKeys.txt
+
+            Guid originalValue = Guid.NewGuid(); //<<< needs to be replaced with the decrypted value
+
+            var article = _articleRepository.GetArticles().SingleOrDefault(x => x.Id == originalValue);
+            var digest = enc.Hash(article.Text);
+
+            if (digest != article.Digest)
+            {
+                TempData["error"] = "Article text has been tampered with";
+            }
+
             return View(article);
         }
 

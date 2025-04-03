@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using NuGet.Configuration;
+using System.Security.Cryptography;
 using WebApp.Data;
 using WebApp.DataAccess;
 
@@ -52,8 +54,25 @@ namespace WebApp
 
             builder.Services.AddScoped<ArtifactRepository>();
             builder.Services.AddScoped<ArticleRepository>();
+            builder.Services.AddScoped<WebApp.Utilities.EncryptionUtility>();
 
             var app = builder.Build();
+           
+            using (var scope = app.Services.CreateScope())
+            {
+                var encryptionUtility = scope.ServiceProvider.GetRequiredService<WebApp.Utilities.EncryptionUtility>();
+
+                var myKeys = encryptionUtility.GenerateSymmetricKeys(Aes.Create());
+
+                if(System.IO.File.Exists("mySymmetricKeys.txt") == false)
+                    using (var myFile = System.IO.File.CreateText("mySymmetricKeys.txt"))
+                    {
+                        myFile.WriteLine(Convert.ToBase64String(myKeys.SecretKey));
+                        myFile.WriteLine(Convert.ToBase64String(myKeys.IV));
+
+                        myFile.Flush();
+                    }
+            }
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())

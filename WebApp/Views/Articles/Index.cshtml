@@ -1,0 +1,89 @@
+﻿@model IEnumerable<WebApp.Models.Article>
+@inject WebApp.Utilities.EncryptionUtility utility
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Id)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Title)
+            </th>
+
+            <th>
+                @Html.DisplayNameFor(model => model.Author)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.CreatedAt)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.UpdatedAt)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.PublicAccess)
+            </th>
+
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model) {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Id)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Title)
+                </td>
+
+                <td>
+                    @Html.DisplayFor(modelItem => item.Author)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CreatedAt)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.UpdatedAt)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.PublicAccess)
+                </td>
+
+                <td>
+                    @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |
+
+                    @{
+                        string[] myKeysArray = System.IO.File.ReadAllLines("mySymmetricKeys.txt");
+
+                        WebApp.Utilities.SymmetricKeys myKeys = new WebApp.Utilities.SymmetricKeys()
+                            {
+                                SecretKey = Convert.FromBase64String(myKeysArray[0]),
+                                IV = Convert.FromBase64String(myKeysArray[1])
+                            };
+
+
+                        string cipher="";
+                       cipher= utility.SymmetricEncrypt(System.Security.Cryptography.Aes.Create(),
+                        item.Id.ToString(),
+                        myKeys
+                         );
+                }
+
+
+                   <a href="\Articles\Details?id=@cipher">Details</a> |
+                @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
