@@ -14,6 +14,9 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using WebApp.Utilities;
+using WebApp.DataAccess;
+using WebApp.Models;
 
 namespace WebApp.Areas.Identity.Pages.Account
 {
@@ -22,10 +25,18 @@ namespace WebApp.Areas.Identity.Pages.Account
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly ILogger<LoginModel> _logger;
 
-        public LoginModel(SignInManager<IdentityUser> signInManager, ILogger<LoginModel> logger)
+        private readonly EncryptionUtility _encryptionUtility;
+        private readonly KeysRepository _keysRepository;
+        public LoginModel(SignInManager<IdentityUser> signInManager, 
+            ILogger<LoginModel> logger,
+            KeysRepository keysRepository,
+            EncryptionUtility encryptionUtility
+            )
         {
             _signInManager = signInManager;
             _logger = logger;
+            _encryptionUtility = encryptionUtility;
+            _keysRepository = keysRepository;
         }
 
         /// <summary>
@@ -114,6 +125,22 @@ namespace WebApp.Areas.Identity.Pages.Account
                 var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: true);
                 if (result.Succeeded)
                 {
+                    //where to generate the asymmetric keys and store them in the database
+                    //1. check whether the keys exist already
+                    //implement a GetKeys(username) method in the repository
+
+                    //2. if they do NOT, you generate the keys
+                    var keys = _encryptionUtility.GenerateAsymmetricKeys();
+                    //3. store them in the database
+                    DBAsymmetricKeys keysdb = new DBAsymmetricKeys()
+                    {
+                        PrivateKey = keys.PrivateKey,
+                        PublicKey = keys.PublicKey,
+                        Username = Input.Email
+                    };
+                    _keysRepository.AddKeysToDatabase(Input.Email, keysdb);
+
+
                     _logger.LogInformation("User logged in.");
                     return LocalRedirect(returnUrl);
                 }

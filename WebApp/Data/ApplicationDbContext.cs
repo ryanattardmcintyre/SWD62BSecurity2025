@@ -46,5 +46,7 @@ namespace WebApp.Data
         public DbSet<Article> Articles { get; set; } //<<this is going to be the table name
         public DbSet<Artifact> Artifacts { get; set; }
         public DbSet<Permission> Permissions { get; set; }
+
+        public DbSet<DBAsymmetricKeys> DBAsymmetricKeys { get; set; }
     }
 }

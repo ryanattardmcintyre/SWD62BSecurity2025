@@ -55,6 +55,7 @@ namespace WebApp
             builder.Services.AddScoped<ArtifactRepository>();
             builder.Services.AddScoped<ArticleRepository>();
             builder.Services.AddScoped<WebApp.Utilities.EncryptionUtility>();
+            builder.Services.AddScoped<KeysRepository>();
 
             var app = builder.Build();
            

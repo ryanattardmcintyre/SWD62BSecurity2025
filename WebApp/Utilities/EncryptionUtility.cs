@@ -1,5 +1,7 @@
 ﻿using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using WebApp.Models;
 
 
 namespace WebApp.Utilities
@@ -40,7 +42,7 @@ namespace WebApp.Utilities
         }
 
         //Approach 2: we can use a value pertaining to the user to generate in real-time the secret key and iv
-        public SymmetricKeys GenerateSymmetricKeys(SymmetricAlgorithm alg, Guid guid, byte[] salt )
+        public SymmetricKeys GenerateSymmetricKeys(SymmetricAlgorithm alg, Guid guid, byte[] salt)
         {
             //guid can be a random guid e.g. the user's id
             //salt = its like a random fixed value which adds more security to the encrypting algorithm
@@ -64,7 +66,7 @@ namespace WebApp.Utilities
             alg.Key = keys.SecretKey;
             alg.IV = keys.IV;
 
-            
+
             //prepare where to store the cipher data
             MemoryStream cipherStream = new MemoryStream();
             //prepare the input as a stream
@@ -74,7 +76,7 @@ namespace WebApp.Utilities
             using (CryptoStream crypto = new CryptoStream(inputStream, alg.CreateEncryptor(), CryptoStreamMode.Read))
             {
                 crypto.CopyTo(cipherStream);
-                 
+
             }
 
             //we should end up with a stream of encrypted bytes held in cipherStream
@@ -115,8 +117,104 @@ namespace WebApp.Utilities
             return null;
         }
 
-    }
 
+
+        public AsymmetricKeys GenerateAsymmetricKeys()
+        {
+            RSACryptoServiceProvider rsa = new RSACryptoServiceProvider(); //DSA
+
+            AsymmetricKeys keys = new AsymmetricKeys();
+            keys.PublicKey = rsa.ToXmlString(false); //public key
+            keys.PrivateKey = rsa.ToXmlString(true); //private key
+
+            return keys;
+        }
+
+
+        //This converts only base64 data so giving it "hello world" - its going to fail
+
+        public byte[] AsymmetricEncrypt(byte[] input, string publicKey)
+        {
+            RSACryptoServiceProvider rsa = new RSACryptoServiceProvider(); //DSA
+
+            rsa.FromXmlString(publicKey);
+
+            //encryption
+            byte[] cipher = rsa.Encrypt(input, true);
+            return cipher;
+        }
+
+        public string AsymmetricEncrypt(string input, string publicKey)
+        {
+            RSACryptoServiceProvider rsa = new RSACryptoServiceProvider(); //DSA
+
+            rsa.FromXmlString(publicKey);
+
+            //encryption
+            byte[] inputASBytes = Encoding.UTF32.GetBytes(input);
+
+            byte[] cipher = rsa.Encrypt(inputASBytes, true);
+
+            string result = Convert.ToBase64String(cipher);
+
+            return result;
+        }
+
+        public string AsymmetricDecrypt(string cipherInput, string privateKey)
+        {
+            RSACryptoServiceProvider rsa = new RSACryptoServiceProvider(); //DSA
+            rsa.FromXmlString(privateKey);
+
+            byte[] cipherAsBytes = Convert.FromBase64String(cipherInput);
+
+            //......incomplete
+
+            return "";
+        }
+
+        public MemoryStream HybridEncrypt(MemoryStream input, string publicKey)
+        {
+            //1. generate the symmetric keys
+            Aes aes = Aes.Create();
+            aes.GenerateKey(); aes.GenerateIV();
+
+            //2. do the symmetric encryption
+            byte[] cipher =
+                SymmetricEncrypt(aes, input.ToArray(), new SymmetricKeys() { IV = aes.IV, SecretKey = aes.Key });
+
+            //3. asymmetrically encrypt the keys above
+            byte[] encryptedIv = AsymmetricEncrypt(aes.IV, publicKey);
+            byte[] encryptedKey = AsymmetricEncrypt(aes.Key, publicKey);
+
+            //4. store everything in the same output MemoryStream
+            MemoryStream output = new MemoryStream();
+            output.Write(encryptedKey, 0, encryptedKey.Length);
+            output.Write(encryptedIv, 0, encryptedIv.Length); // the 0 in the middle means how many spaces you're going to skip
+            output.Write(cipher, 0, cipher.Length);
+            output.Close();
+
+            return output;
+        }
+
+        public MemoryStream HybridDecrypt(MemoryStream input, string privateKey)
+        {
+            //1. read the encrypted secret key from the input
+            byte[] encSecretKey = new byte[144]; //check the 144 by placing a breakpoing in the HybridEnc
+            input.Read(encSecretKey, 0, encSecretKey.Length);
+
+            //2. read the encrypted iv from the input
+
+            //3. what's left, is the symetrically encrypted content
+            //at this stage the pointer inside the input MemoryStream would have moved
+
+            //4. Asymmetrically decrypt the read encSecret & encIv
+
+            //5. Symmetrically decrypt the whatsLeftOfTheContent using the decrypted secret key and iv
+
+            //6 return
+            return null;
+        }
+    }
 
 
     public class SymmetricKeys
@@ -124,5 +222,12 @@ namespace WebApp.Utilities
         public SymmetricKeys() { }
         public byte[] SecretKey { get; set; }
         public byte[] IV { get; set; }
+    }
+
+    public class AsymmetricKeys
+    {
+        public AsymmetricKeys() { }
+        public string PublicKey { get; set; } //is to encrypt
+        public string PrivateKey { get; set; } //is to decrypt
     }
 }
