@@ -44,6 +44,8 @@ namespace WebApp.Controllers
         public ActionResult Create(Article article, List<IFormFile> files, [FromServices]EncryptionUtility enc)
         {
 
+
+
             IDbContextTransaction transaction = null; //this will be used to keep track of the db changes until i commit/abort
             try
             {
@@ -106,7 +108,10 @@ namespace WebApp.Controllers
                 article.Author = User.Identity.Name; //email!! of the currently logged in user
                 article.PublicAccess = false;
                 article.Digest = enc.Hash(article.Text);
+                article.Text = System.Web.HttpUtility.HtmlEncode(article.Text); //<script>....</script>
 
+
+               
 
 
                 _articleRepository.AddArticle(article); //<<<<<<<<<<<<<<<<<<<<<<   saves into db
@@ -133,6 +138,10 @@ namespace WebApp.Controllers
 
                     //3.2 saves into db
                     a.Digest = ""; //temp solution
+
+                    msIn.Position = 0;
+                    var keys = enc.GenerateAsymmetricKeys();
+                    string signature = enc.DigitallySign(msIn, keys.PrivateKey);
 
                     _artifactRepository.AddArtifact(a); //<<<<<<<<<<<<<<<<<<<<<<   saves into db
 

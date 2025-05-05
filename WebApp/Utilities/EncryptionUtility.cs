@@ -214,6 +214,28 @@ namespace WebApp.Utilities
             //6 return
             return null;
         }
+
+        public string DigitallySign(MemoryStream input, string privateKey)
+        {
+            RSACryptoServiceProvider myAlg = new RSACryptoServiceProvider();
+            myAlg.FromXmlString(privateKey); //< in the assignment (web app) you don't need to this line
+
+            byte[] dataToBeSigned = input.ToArray();
+
+            byte [] signature =myAlg.SignData(dataToBeSigned, new HashAlgorithmName("SHA512"), RSASignaturePadding.Pkcs1);
+
+            return Convert.ToBase64String(signature);
+
+        }
+
+        public bool DigitallyVerify(MemoryStream input, string publicKey, string signature)
+        {
+            RSACryptoServiceProvider myAlg = new RSACryptoServiceProvider();
+
+            //...
+
+            return true;
+        }
     }
 
 
